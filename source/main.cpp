@@ -29,22 +29,22 @@ double uRandom(double a);
 int main()
 {
     int m = 50;         // number of fireflies
-    int n = 2;          // dimension of the problem
+    int n = 10;          // dimension of the problem
     double x_l = -40.0; // lobwer bound
     double x_r = 40.0;  // uper bound
     Firefly firefly[m]; // fireflies
-    double a = 0.6;     // alfa, parameter of algorithm
+    double a = 0.7;     // alfa, parameter of algorithm
  
     // initialization population of fireflies
     fireflyInit(m, n, firefly, x_r, x_l);
     double r = 0.0;        // distance between firefly
     double B_0 = 1;      // Beta_0 parameter
-    double Y = 6;        // Gammna parameter
+    double Y = 5;        // Gammna parameter
     double u = uRandom(a); // generate random u with uniform distribution
     int t = 1;
     double print;
     int MaxGeneration = 10000;
-    double best = 0.0;
+    double best = firefly[0].f_x;
     while (t < MaxGeneration)
     {
         for (size_t i = 0; i < m; i++)
@@ -92,7 +92,7 @@ int main()
 
         for (size_t i = 0; i < m; i++)
         {
-            if (best < firefly[i].f_x)
+            if (best > firefly[i].f_x)
             {
                 best = firefly[i].f_x;
                 best_index = i;
