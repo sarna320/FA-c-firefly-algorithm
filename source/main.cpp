@@ -2,6 +2,8 @@
 #include <cmath>
 #include <vector>
 #include <random>
+#include <algorithm>
+#include <array>
 
 using namespace std;
 
@@ -11,6 +13,7 @@ public:
     vector<double> x;
     double B; // attractiveness of fifirefly
     double I; // intensity of fifirefly
+    double f_x;
     Firefly();
     ~Firefly();
 };
@@ -25,18 +28,85 @@ double uRandom(double a);
 
 int main()
 {
-    int m = 20;         // number of fireflies
+    int m = 50;         // number of fireflies
     int n = 2;          // dimension of the problem
     double x_l = -40.0; // lobwer bound
     double x_r = 40.0;  // uper bound
     Firefly firefly[m]; // fireflies
-    double a = 0.7;     // alfa, parameter of algorithm
-    double u=uRandom(a); //generate radom u with uniform distribution
-    // initialization fireflies
+    double a = 0.6;     // alfa, parameter of algorithm
+ 
+    // initialization population of fireflies
     fireflyInit(m, n, firefly, x_r, x_l);
+    double r = 0.0;        // distance between firefly
+    double B_0 = 1;      // Beta_0 parameter
+    double Y = 6;        // Gammna parameter
+    double u = uRandom(a); // generate random u with uniform distribution
+    int t = 1;
+    double print;
+    int MaxGeneration = 10000;
+    double best = 0.0;
+    while (t < MaxGeneration)
+    {
+        for (size_t i = 0; i < m; i++)
+        {
+            for (size_t j = 0; j < m; j++)
+            {
+                for (size_t k = 0; k < n; k++)
+                {
+                    r += (firefly[i].x[k] - firefly[j].x[k]) * (firefly[i].x[k] - firefly[j].x[k]);
+                }
+                r = sqrt(r);
 
-    // print all fireflies
-    // fireflyPrint(m, firefly);
+                if (firefly[j].I > firefly[i].I)
+                {
+                    firefly[i].B = B_0 * exp(-Y * pow(r, 2));
+
+                    for (size_t k = 0; k < n; k++)
+                    {
+                        u = uRandom(a);
+                        firefly[i].x[k] = firefly[i].x[k] + firefly[i].B * (firefly[j].x[k] - firefly[i].x[k]) + u;
+                    }
+                }
+            }
+            
+            // checking boundries
+            for (size_t l = 0; l < n; l++)
+            {
+                if (firefly[i].x[l] < x_l)
+                {
+                    firefly[i].x[l] = x_l;
+                }
+                if (firefly[i].x[l] > x_r)
+                {
+                    firefly[i].x[l] = x_r;
+                }
+            }
+
+            // new solutions and intensisty
+            firefly[i].f_x = f_x(firefly[i].x);
+            firefly[i].I = 1.0 / firefly[i].f_x;
+        }
+
+        // search for best
+        int best_index = 0;
+
+        for (size_t i = 0; i < m; i++)
+        {
+            if (best < firefly[i].f_x)
+            {
+                best = firefly[i].f_x;
+                best_index = i;
+            }
+        }
+        for (size_t i = 0; i < n; i++)
+        {
+            u = uRandom(a);
+            firefly[best_index].x[i] = firefly[best_index].x[i]+u;
+        }
+
+        t++;
+        cout << best << endl;
+    }
 
     return 0;
 }
@@ -69,7 +139,8 @@ void fireflyInit(int m, int n, Firefly firefly[], double x_r, double x_l)
             temp = (rand() / (double)RAND_MAX) * (x_r - x_l) + x_l;
             firefly[i].x.push_back(temp);
         }
-        firefly[i].I = 1 / f_x(firefly[i].x);
+        firefly[i].f_x = f_x(firefly[i].x);
+        firefly[i].I = 1 / firefly[i].f_x;
     }
 }
 
